@@ -18,6 +18,7 @@ class playStationGame():
 class scrapper:
 
     def searchTopGames(self):
+        games = []
         url = "https://www.3djuegos.com/top-100/ps4/"
         options = Options()
         options.headless = False
@@ -29,7 +30,9 @@ class scrapper:
             gameXpath = '//*[@id="tb926"]/div[1]/div[6]/div[1]/table[2]/tbody/tr['+str(i)+']/td[3]/a'
             gameElement = browser.find_element(By.XPATH,gameXpath)
             gameName = gameElement.get_attribute("innerHTML")
+            games.append(gameName)
             print(gameName)
+        return games
 
 
     def gameAmazon(self, name):
@@ -52,13 +55,13 @@ class scrapper:
 
     def gameMetaCritic(self, name):
         games = []
-        url1 = "https://www.metacritic.com/search/all/" + name +"/results"
+        url = "https://www.metacritic.com/search/all/" + name +"/results"
         options = Options()
         options.headless = False
         options.add_experimental_option("detach", True)
         browser = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
         browser.maximize_window()
-        browser.get(url1)
+        browser.get(url)
         metaGameXpath = '//*[@id="main_content"]/div/div[3]/div/ul/li[1]/div/div[2]/div/h3/a'
         metaGameElement = browser.find_element(By.XPATH, metaGameXpath)
         metaGameElement.click()
@@ -66,11 +69,29 @@ class scrapper:
         metaScoreElement = browser.find_element(By.XPATH, metaScoreXPath)
         metaScoreText = metaScoreElement.get_attribute("innerHTML")
         print(metaScoreText)
-        
+
+
+    def gameHowLongToBeat(self,name):
+        url = "https://howlongtobeat.com/?q="+name
+        options = Options()
+        options.headless = False
+        options.add_experimental_option("detach", True)
+        browser = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+        browser.maximize_window()
+        browser.get(url)
+        timeGameXpath = '// *[ @ id = "search-results-header"] / ul / li[1] / div[2] / div / div / div[6]'
+        timeGameElement = browser.find_element(By.XPATH, timeGameXpath)
+        timeGameText =  timeGameElement.get_attribute("innerHTML");
+        print(timeGameText)
+
+
+
+
+
 
 
 fetcher = scrapper()
-#fetcher.gameAmazon("last of us")
-#fetcher.searchTopGames()
-fetcher.gameMetaCritic("last of us")
+games = fetcher.searchTopGames()
+fetcher.gameAmazon("last of us")
+fetcher.gameHowLongToBeat("last of us")
 
