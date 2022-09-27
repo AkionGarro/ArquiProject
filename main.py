@@ -32,7 +32,23 @@ class scrapper:
             print(gameName)
 
 
-
+    def game(self, name):
+        games = []
+        url1 = "https://www.amazon.com/s?k=" + name
+        options = Options()
+        options.headless = False
+        options.add_experimental_option("detach", True)
+        browser = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+        browser.maximize_window()
+        browser.get(url1)
+        gameXPath = '//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[2]/div/div/div/div/div/div[1]/div/div[2]/div/span/a/div/img'
+        title = browser.find_element(By.XPATH, gameXPath)
+        title.click()
+        gamePriceXpath = '//*[@id="priceblock_ourprice"]'
+        price = browser.find_element(By.XPATH, gamePriceXpath)
+        priceText = price.get_attribute("innerHTML")
+        print(priceText)
+        browser.get(url1)
 
 fetcher = scrapper()
 fetcher.game("last of us")
