@@ -18,40 +18,59 @@ class playStationGame():
 class scrapper:
 
     def searchTopGames(self):
-        url2 = "https://www.3djuegos.com/top-100/ps4/"
+        url = "https://www.3djuegos.com/top-100/ps4/"
         options = Options()
         options.headless = False
         options.add_experimental_option("detach", True)
         browser = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
         browser.maximize_window()
-        browser.get(url2)
+        browser.get(url)
         for i in range(1,100):
-            itemPath = '//*[@id="tb926"]/div[1]/div[6]/div[1]/table[2]/tbody/tr['+str(i)+']/td[3]/a'
-            element = browser.find_element(By.XPATH,itemPath)
-            gameName = element.get_attribute("innerHTML")
+            gameXpath = '//*[@id="tb926"]/div[1]/div[6]/div[1]/table[2]/tbody/tr['+str(i)+']/td[3]/a'
+            gameElement = browser.find_element(By.XPATH,gameXpath)
+            gameName = gameElement.get_attribute("innerHTML")
             print(gameName)
 
 
-    def game(self, name):
+    def gameAmazon(self, name):
         games = []
-        url1 = "https://www.amazon.com/s?k=" + name
+        url = "https://www.amazon.com/s?k=" + name
+        options = Options()
+        options.headless = False
+        options.add_experimental_option("detach", True)
+        browser = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+        browser.maximize_window()
+        browser.get(url)
+        gameXPath = '//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[2]/div/div/div/div/div/div[1]/div/div[2]/div/span/a/div/img'
+        gameTitleElement = browser.find_element(By.XPATH, gameXPath)
+        gameTitleElement.click()
+        gamePriceXpath = '//*[@id="priceblock_ourprice"]'
+        gamePriceElement = browser.find_element(By.XPATH, gamePriceXpath)
+        gamePriceText = gamePriceElement.get_attribute("innerHTML")
+        print(gamePriceText)
+        browser.get(url)
+
+    def gameMetaCritic(self, name):
+        games = []
+        url1 = "https://www.metacritic.com/search/all/" + name +"/results"
         options = Options()
         options.headless = False
         options.add_experimental_option("detach", True)
         browser = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
         browser.maximize_window()
         browser.get(url1)
-        gameXPath = '//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[2]/div/div/div/div/div/div[1]/div/div[2]/div/span/a/div/img'
-        title = browser.find_element(By.XPATH, gameXPath)
-        title.click()
-        gamePriceXpath = '//*[@id="priceblock_ourprice"]'
-        price = browser.find_element(By.XPATH, gamePriceXpath)
-        priceText = price.get_attribute("innerHTML")
-        print(priceText)
-        browser.get(url1)
+        metaGameXpath = '//*[@id="main_content"]/div/div[3]/div/ul/li[1]/div/div[2]/div/h3/a'
+        metaGameElement = browser.find_element(By.XPATH, metaGameXpath)
+        metaGameElement.click()
+        metaScoreXPath = '//*[@id="main"]/div/div[1]/div[1]/div[3]/div/div[2]/div[1]/div[1]/div/div/a/div/span'
+        metaScoreElement = browser.find_element(By.XPATH, metaScoreXPath)
+        metaScoreText = metaScoreElement.get_attribute("innerHTML")
+        print(metaScoreText)
+        
+
 
 fetcher = scrapper()
-fetcher.game("last of us")
-fetcher.searchTopGames()
-
+#fetcher.gameAmazon("last of us")
+#fetcher.searchTopGames()
+fetcher.gameMetaCritic("last of us")
 
