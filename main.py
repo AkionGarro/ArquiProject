@@ -1,5 +1,57 @@
+import csv
 from selenium import webdriver
-url = 'https://www.youtube.com/kallehallden/videos'
-browser = webdriver.Edge()
-browser.get(url)
-browser.find_element( "xpath",'//*[@id="video-title"]').click()
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+class amazonGame():
+    def __init__(self, title, price):
+        self.title = title
+        self.price = price
+
+class playStationGame():
+    def __init__(self, title, price):
+        self.title = title
+        self.price = price
+
+
+class bot:
+
+    def searchTopGames(self):
+        url2 = "https://www.3djuegos.com/top-100/ps4/"
+        options = Options()
+        options.headless = False
+        options.add_experimental_option("detach", True)
+        browser = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+        browser.maximize_window()
+        browser.get(url2)
+        for i in range(1,100):
+            itemPath = '//*[@id="tb926"]/div[1]/div[6]/div[1]/table[2]/tbody/tr['+str(i)+']/td[3]/a'
+            element = browser.find_element(By.XPATH,itemPath)
+            gameName = element.get_attribute("innerHTML")
+            print(gameName)
+
+    def game(self, name):
+        games = []
+        url1 = "https://www.amazon.com/s?k=" + name
+        options = Options()
+        options.headless = False
+        options.add_experimental_option("detach", True)
+        browser = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+        browser.maximize_window()
+        browser.get(url1)
+        gameXPath = '//*[@id="search"]/div[1]/div[1]/div/span[3]/div[2]/div[2]/div/div/div/div/div/div[1]/div/div[2]/div/span/a/div/img'
+        title = browser.find_element(By.XPATH, gameXPath)
+        title.click()
+        gamePriceXpath = '//*[@id="priceblock_ourprice"]'
+        price = browser.find_element(By.XPATH, gamePriceXpath)
+        priceText = price.get_attribute("innerHTML")
+        print(priceText)
+        browser.get(url1)
+
+
+fetcher = bot()
+fetcher.game("last of us")
+fetcher.searchTopGames()
+
+
