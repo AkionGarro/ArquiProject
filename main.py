@@ -1,4 +1,7 @@
 from selenium import webdriver
+from selenium.webdriver.common.proxy import Proxy, ProxyType
+import requests
+import time
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.edge.service import Service
@@ -21,6 +24,35 @@ class playStationGame():
 
 class scrapper:
 
+    def changeProxy(self, ipPort):
+        proxy = Proxy()
+        proxy.proxy_type = ProxyType.MANUAL
+        proxy.http_proxy = ipPort
+        proxy.ssl_proxy = ipPort
+
+        capabilities = webdriver.DesiredCapabilities.EDGE
+        proxy.add_to_capabilities(capabilities)
+
+        service = Service(verbose=True)
+        options = Options()
+        options.add_argument('--proxy-server=%s' % proxy)
+        driver = webdriver.Edge(service=service, options=options)
+        driver.get('http://httpbin.org/ip')
+
+        time.sleep(2)
+        #self.gamePlayStation("dark souls")
+        driver.quit()
+
+    #otro metodo que intente con la libreria requests pero igual me sale la pagina bloqueada
+    def gamePS(self, game, ipPort):
+        #try:
+        proxy = ipPort
+        r = requests.get("https://store.playstation.com/es-cr/search/" + game, proxies={'http': proxy, 'https': proxy})
+        print(r.json())
+        #except:
+         #   print('fail')
+          #  pass
+
     def searchTopGames(self):
         games = []
         url = "https://www.3djuegos.com/top-100/ps4/"
@@ -39,23 +71,45 @@ class scrapper:
         return games
 
     def gameAmazon(self, game):
-            service = Service(verbose=True)
-            options = Options()
-            options.add_argument("headless")
-            browser = webdriver.Edge(service=service, options=options)
-            try:
-                url = "https://www.amazon.com/s?k=" + game +" PlayStation 4 Game"
-                browser.get(url)
-                gameTitleElement = browser.find_element(By.CSS_SELECTOR,'img.s-image')
-                gameTitleElement.click()
-                gamePriceID = 'priceblock_ourprice'
-                gamePriceElement = browser.find_element(By.ID, gamePriceID)
-                gamePriceText = gamePriceElement.get_attribute("innerHTML")
-                print(gamePriceText)
-                return gamePriceText
-            except:
-                print("error")
-            browser.close()
+        service = Service(verbose=True)
+        options = Options()
+        options.add_argument("headless")
+        browser = webdriver.Edge(service=service, options=options)
+        try:
+            url = "https://www.amazon.com/s?k=" + game +" PlayStation 4 Game"
+            browser.get(url)
+            gameTitleElement = browser.find_element(By.CSS_SELECTOR,'img.s-image')
+            gameTitleElement.click()
+            gamePriceID = 'priceblock_ourprice'
+            gamePriceElement = browser.find_element(By.ID, gamePriceID)
+            gamePriceText = gamePriceElement.get_attribute("innerHTML")
+            print(gamePriceText)
+            return gamePriceText
+        except:
+            print("error")
+        browser.close()
+
+
+
+    def gamePlayStation(self, game):
+        service = Service(verbose=True)
+        options = Options()
+        options.add_argument("headless")
+        browser = webdriver.Edge(service=service, options=options)
+        #try:
+        url = "https://store.playstation.com/es-cr/search/" + game
+        browser.get(url)
+        playGameXpath = '//*[@id="main"]/section/div/ul/li[1]/div/a/div/div'
+        gameTitleElement = browser.find_element(By.XPATH, playGameXpath)
+        gameTitleElement.click()
+        gamePriceClass = 'psw-t-title-m'
+        gamePriceElement = browser.find_element(By.CLASS_NAME, gamePriceClass)
+        gamePriceText = gamePriceElement.get_attribute("innerHTML")
+        print(game + " " + gamePriceText)
+            #return gamePriceText
+        # except:
+        #     print("error")
+        browser.close()
 
 
 
@@ -107,14 +161,18 @@ class scrapper:
 
 fetcher = scrapper()
 games = []
-with open('games.txt', 'r') as fd:
-    reader = csv.reader(fd)
-    for row in reader:
-        games.append(row[0])
-for i in games:
-    print(i)
+fetcher.changeProxy('80.48.119.28:8080')
+#fetcher.gamePS('dark souls', '80.48.119.28:8080')
+#fetcher.gamePlayStation("dark souls")
+# with open('games.txt', 'r') as fd:
+#     reader = csv.reader(fd)
+#     for row in reader:
+#         games.append(row[0])
+# for i in games:
+#     print(i)
 #Parallel way
-num_cores = mp.cpu_count()
-amazonPrices = Parallel(mp.cpu_count())(delayed(fetcher.gameAmazon)(i) for i in games)
-metaScore = Parallel(mp.cpu_count())(delayed(fetcher.gameMetaCritic)(i) for i in games)
-metaScore = Parallel(mp.cpu_count())(delayed(fetcher.gameHowLongToBeat)(i) for i in games)
+# num_cores = mp.cpu_count()
+# playStationPrices = Parallel(mp.cpu_count())(delayed(fetcher.gamePlayStation)(i) for i in games)
+# amazonPrices = Parallel(mp.cpu_count())(delayed(fetcher.gameAmazon)(i) for i in games)
+# metaScore = Parallel(mp.cpu_count())(delayed(fetcher.gameMetaCritic)(i) for i in games)
+# metaScore = Parallel(mp.cpu_count())(delayed(fetcher.gameHowLongToBeat)(i) for i in games)
