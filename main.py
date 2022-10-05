@@ -7,6 +7,7 @@ from selenium.webdriver.edge.options import Options
 import multiprocessing as mp
 from joblib import Parallel, delayed
 import csv
+import time
 
 # psPricesList = []
 # amazonPricesList = []
@@ -17,19 +18,21 @@ import csv
 
 
 class gameFull():
-    def __init__(self, title, psPrice, amazonPrice, metaScore, howlong):
+    def __init__(self, title, psPrice, amazonPrice, metaScore, howlong, imageLink):
         self.title = title
         self.psPrice = psPrice
         self.amazonPrice = amazonPrice
         self.metaScore = metaScore
         self.howlong = howlong
+        self.imageLink = imageLink
 
     def printGameInfo(self):
         print("Name: " + self.title + "\n"
         "PlayStationPrice: " + self.psPrice + "\n"
         "AmazonPrice: " + self.amazonPrice + "\n"
         "Meta Score: " + self.metaScore + "\n"
-        "How Long to Beat: " + self.howlong + "\n")
+        "How Long to Beat: " + self.howlong + "\n"
+        "Enlace a imagen: " + self.imageLink + "\n")
 
 class scrapper:
 
@@ -92,8 +95,13 @@ class scrapper:
 
         try:
 
-            url = "https://www.amazon.com/s?k=" + game + " PlayStation 4 Game"
+            url = "https://www.amazon.com/s?k=" + game + " ps4"
             browser.get(url)
+            # gameImageXpath = '//*[@id="landingImage"]'
+            gameImageClass = 's-image'
+            gameImageElement = browser.find_element(By.CLASS_NAME, gameImageClass)
+            item = gameImageElement.get_attribute('src')
+            self.srcImagesList.append(item)
             gameTitleElement = browser.find_element(By.CSS_SELECTOR, 'img.s-image')
             gameTitleElement.click()
             gamePriceID = 'priceblock_ourprice'
@@ -138,11 +146,32 @@ class scrapper:
             browser.get(url)
             timeGameXpath = '//*[@id="search-results-header"]/ul/li[1]/div[2]/div/div/div[2]'
             timeGameElement = browser.find_element(By.XPATH, timeGameXpath)
-            timeGameText = timeGameElement.get_attribute("innerHTML");
+            timeGameText = timeGameElement.get_attribute("innerHTML")
             self.howLongList.append(str(timeGameText))
             #print(timeGameText)
         except:
             self.howLongList.append("Not Found")
+        browser.close()
+
+    def gameImages(self, name):
+
+        service = Service(verbose=True)
+        options = Options()
+        options.add_argument("headless")
+        browser = webdriver.Edge(service=service, options=options)
+
+        try:
+
+            url = 'https://www.google.com/search?tbm=isch&q=' + name + 'ps4 cover'
+            browser.get(url)
+            gameImageXpath = '//*[@id="islrg"]/div[1]/div[1]/a[1]/div[1]/img'
+            gameImageElement = browser.find_element(By.XPATH, gameImageXpath)
+            imageLink = gameImageElement.get_attribute("innerHTML")
+            self.srcImagesList.append(str(imageLink))
+            print(imageLink)
+        except:
+            self.srcImagesList.append("Not Found")
+            print('fail')
         browser.close()
 
     def gameFactory(self, games):
@@ -154,7 +183,8 @@ class scrapper:
             currAmazon = self.amazonPricesList[i]
             currmetaScore = self.metaScoreList[i]
             currhowLong = self.howLongList[i]
-            currentGame = gameFull(currTitle, currPs, currAmazon, currmetaScore, currhowLong)
+            currImageLinks = self.srcImagesList[i]
+            currentGame = gameFull(currTitle, currPs, currAmazon, currmetaScore, currhowLong, currImageLinks)
             self.AllGamesList.append(currentGame)
             i += 1
         return self.AllGamesList
@@ -163,7 +193,8 @@ class scrapper:
         print('Lista ps: ' + str(self.psPricesList) + '\n'
         'Lista amazon: ' + str(self.amazonPricesList) + '\n'
         'Lista howlong: ' + str(self.howLongList) + '\n'
-        'lista metas: ' + str(self.metaScoreList) + '\n')
+        'Lista metas: ' + str(self.metaScoreList) + '\n'
+        'Lista enlaces: ' + str(self.srcImagesList))
 
 
 fetcher = scrapper()
@@ -173,16 +204,21 @@ with open('games2.txt', 'r') as fd:
     for row in reader:
         games.append(row[0])
 num_cores = mp.cpu_count()
-
+#start_time = time.time()
 
 playStationPrices = Parallel(4, prefer = "threads")(delayed(fetcher.gamePlayStation)(i) for i in games)
 amazonPrices = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameAmazon)(i) for i in games)
 metaScore = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameMetaCritic)(i) for i in games)
 metaScore = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameHowLongToBeat)(i) for i in games)
 
+#print(print("segundos en ejecucion " + str((time.time() - start_time))))
+
+# imagesLink = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameImages)(i) for i in games)
+#print(fetcher.srcImagesList)
+
 fetcher.gameFactory(games)
 
 print('Variables globales:')
 fetcher.printsGlobals()
 for i in fetcher.AllGamesList:
-    i.printGameInfo()
+   i.printGameInfo()
