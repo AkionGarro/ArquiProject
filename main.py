@@ -1,7 +1,4 @@
 from selenium import webdriver
-from selenium.webdriver.common.proxy import Proxy, ProxyType
-import requests
-import time
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.edge.service import Service
@@ -10,12 +7,13 @@ from selenium.webdriver.edge.options import Options
 import multiprocessing as mp
 from joblib import Parallel, delayed
 import csv
-psPricesList = []
-amazonPricesList = []
-metaScoreList = []
-howLongList = []
-srcImagesList = []
-AllGamesList = []
+
+# psPricesList = []
+# amazonPricesList = []
+# metaScoreList = []
+# howLongList = []
+# srcImagesList = []
+# AllGamesList = []
 
 
 class gameFull():
@@ -28,12 +26,20 @@ class gameFull():
 
     def printGameInfo(self):
         print("Name: " + self.title + "\n"
-                                      "PlayStationPrice: " + self.psPrice + "\n"
-                                                                            "AmazonPrice: " + self.amazonPrice + "\n"
-                                                                                                                 "Meta Score: " + self.metaScore + "\n"
-                                                                                                                                                   "How Long to Beat: " + self.howlong + "\n")
+        "PlayStationPrice: " + self.psPrice + "\n"
+        "AmazonPrice: " + self.amazonPrice + "\n"
+        "Meta Score: " + self.metaScore + "\n"
+        "How Long to Beat: " + self.howlong + "\n")
 
 class scrapper:
+
+    def __init__(self):
+        self.psPricesList = []
+        self.amazonPricesList = []
+        self.metaScoreList = []
+        self.howLongList = []
+        self.srcImagesList = []
+        self.AllGamesList = []
 
     def searchTopGames(self):
 
@@ -50,15 +56,15 @@ class scrapper:
             gameElement = browser.find_element(By.CSS_SELECTOR, gameSelector)
             gameName = gameElement.get_attribute("innerHTML")
             games.append(gameName)
-            print(gameName)
+            #print(gameName)
         browser.close()
         return games
 
     def gamePlayStation(self, game):
-        global psPricesList
+        #global psPricesList
         service = Service(verbose=True)
         options = Options()
-        #options.add_argument("headless")
+        options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
 
         try:
@@ -71,17 +77,17 @@ class scrapper:
             gamePriceClass = 'psw-t-title-m'
             gamePriceElement = browser.find_element(By.CLASS_NAME, gamePriceClass)
             gamePriceText = gamePriceElement.get_attribute("innerHTML")
-            psPricesList.append(str(gamePriceText))
-            print(gamePriceText)
+            self.psPricesList.append(str(gamePriceText))
         except:
-            psPricesList.append("Not Found")
+            self.psPricesList.append("Not Found")
+
         browser.close()
 
     def gameAmazon(self, game):
-        global amazonPricesList
+        #global amazonPricesList
         service = Service(verbose=True)
         options = Options()
-        #options.add_argument("headless")
+        options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
 
         try:
@@ -93,17 +99,17 @@ class scrapper:
             gamePriceID = 'priceblock_ourprice'
             gamePriceElement = browser.find_element(By.ID, gamePriceID)
             gamePriceText = gamePriceElement.get_attribute("innerHTML")
-            amazonPricesList.append(str(gamePriceText))
-            print(gamePriceText)
+            self.amazonPricesList.append(str(gamePriceText))
+            #print(gamePriceText)
         except:
-            amazonPricesList.append("Not Found")
+            self.amazonPricesList.append("Not Found")
         browser.close()
 
     def gameMetaCritic(self, name):
-        global metaScoreList
+        #global metaScoreList
         service = Service(verbose=True)
         options = Options()
-        #options.add_argument("headless")
+        options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
 
         try:
@@ -113,17 +119,17 @@ class scrapper:
             metaGameXpath = '//*[@id="main_content"]/div/div[3]/div/ul/li[1]/div/div[2]/div/span'
             metaGameElement = browser.find_element(By.XPATH, metaGameXpath)
             metaScoreText = metaGameElement.get_attribute("innerHTML")
-            metaScoreList.append(str(metaScoreText))
-            print(metaScoreText)
+            self.metaScoreList.append(str(metaScoreText))
+            #print(metaScoreText)
         except:
-            metaScoreList.append("Not Found")
+            self.metaScoreList.append("Not Found")
         browser.close()
 
     def gameHowLongToBeat(self, name):
-        global howLongList
+        #global howLongList
         service = Service(verbose=True)
         options = Options()
-        #options.add_argument("headless")
+        options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
 
         try:
@@ -133,35 +139,32 @@ class scrapper:
             timeGameXpath = '//*[@id="search-results-header"]/ul/li[1]/div[2]/div/div/div[2]'
             timeGameElement = browser.find_element(By.XPATH, timeGameXpath)
             timeGameText = timeGameElement.get_attribute("innerHTML");
-            howLongList.append(str(timeGameText))
-            print(timeGameText)
+            self.howLongList.append(str(timeGameText))
+            #print(timeGameText)
         except:
-            howLongList.append("Not Found")
+            self.howLongList.append("Not Found")
         browser.close()
 
     def gameFactory(self, games):
-        global AllGames
-        i = 1
+        #
+        i = 0
         for game in games:
             currTitle = game
-            currPs = self.psPrices[i]
-            currAmazon = self.amazonPrices[i]
-            currmetaScore = self.metaScore[i]
-            currhowLong = self.howLong[i]
+            currPs = self.psPricesList[i]
+            currAmazon = self.amazonPricesList[i]
+            currmetaScore = self.metaScoreList[i]
+            currhowLong = self.howLongList[i]
             currentGame = gameFull(currTitle, currPs, currAmazon, currmetaScore, currhowLong)
-            AllGames.append(currentGame)
+            self.AllGamesList.append(currentGame)
             i += 1
-        return AllGames
+        return self.AllGamesList
 
     def printsGlobals(self):
-        global psPricesList
-        global amazonPricesList
-        global  howLongList
-        global metaScoreList
-        print(psPricesList)
-        print(amazonPricesList)
-        print(howLongList)
-        print(metaScoreList)
+        print('Lista ps: ' + str(self.psPricesList) + '\n'
+        'Lista amazon: ' + str(self.amazonPricesList) + '\n'
+        'Lista howlong: ' + str(self.howLongList) + '\n'
+        'lista metas: ' + str(self.metaScoreList) + '\n')
+
 
 fetcher = scrapper()
 games = []
@@ -170,11 +173,16 @@ with open('games2.txt', 'r') as fd:
     for row in reader:
         games.append(row[0])
 num_cores = mp.cpu_count()
-playStationPrices = Parallel(4)(delayed(fetcher.gamePlayStation)(i) for i in games)
-amazonPrices = Parallel(mp.cpu_count())(delayed(fetcher.gameAmazon)(i) for i in games)
-metaScore = Parallel(mp.cpu_count())(delayed(fetcher.gameMetaCritic)(i) for i in games)
-metaScore = Parallel(mp.cpu_count())(delayed(fetcher.gameHowLongToBeat)(i) for i in games)
 
+
+playStationPrices = Parallel(4, prefer = "threads")(delayed(fetcher.gamePlayStation)(i) for i in games)
+amazonPrices = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameAmazon)(i) for i in games)
+metaScore = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameMetaCritic)(i) for i in games)
+metaScore = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameHowLongToBeat)(i) for i in games)
+
+fetcher.gameFactory(games)
+
+print('Variables globales:')
 fetcher.printsGlobals()
-
-
+for i in fetcher.AllGamesList:
+    i.printGameInfo()
