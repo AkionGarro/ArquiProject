@@ -9,13 +9,6 @@ from joblib import Parallel, delayed
 import csv
 import time
 
-# psPricesList = []
-# amazonPricesList = []
-# metaScoreList = []
-# howLongList = []
-# srcImagesList = []
-# AllGamesList = []
-
 
 class gameFull():
     def __init__(self, title, psPrice, amazonPrice, metaScore, howlong, imageLink):
@@ -45,7 +38,6 @@ class scrapper:
         self.AllGamesList = []
 
     def searchTopGames(self):
-
         games = []
         url = "https://www.3djuegos.com/top-100/ps4/"
         service = Service(verbose=True)
@@ -54,24 +46,19 @@ class scrapper:
         browser = webdriver.Edge(service=service, options=options)
         browser.get(url)
         for i in range(1, 80):
-            gameSelector = '#tb926 > div.izq2 > div.mar_t5.bgc0.br3.mar_rl3.s11.c7 > div.pad_rl8.fftext > table:nth-child(3) > tbody > tr:nth-child(' + str(
-                i) + ') > td:nth-child(3) > a '
+            gameSelector = '#tb926 > div.izq2 > div.mar_t5.bgc0.br3.mar_rl3.s11.c7 > div.pad_rl8.fftext > table:nth-child(3) > tbody > tr:nth-child(' + str(i) + ') > td:nth-child(3) > a '
             gameElement = browser.find_element(By.CSS_SELECTOR, gameSelector)
             gameName = gameElement.get_attribute("innerHTML")
             games.append(gameName)
-            #print(gameName)
         browser.close()
         return games
 
     def gamePlayStation(self, game):
-        #global psPricesList
         service = Service(verbose=True)
         options = Options()
         options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
-
         try:
-
             url = "https://store.playstation.com/es-cr/search/" + game
             browser.get(url)
             playGameXpath = '//*[@id="main"]/section/div/ul/li[1]/div/a/div/div'
@@ -87,96 +74,77 @@ class scrapper:
         browser.close()
 
     def gameAmazon(self, game):
-        #global amazonPricesList
         service = Service(verbose=True)
         options = Options()
         options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
-
         try:
-
             url = "https://www.amazon.com/s?k=" + game + " ps4"
             browser.get(url)
-            # gameImageXpath = '//*[@id="landingImage"]'
-            gameImageClass = 's-image'
-            gameImageElement = browser.find_element(By.CLASS_NAME, gameImageClass)
-            item = gameImageElement.get_attribute('src')
-            self.srcImagesList.append(item)
             gameTitleElement = browser.find_element(By.CSS_SELECTOR, 'img.s-image')
             gameTitleElement.click()
             gamePriceID = 'priceblock_ourprice'
             gamePriceElement = browser.find_element(By.ID, gamePriceID)
             gamePriceText = gamePriceElement.get_attribute("innerHTML")
             self.amazonPricesList.append(str(gamePriceText))
-            #print(gamePriceText)
         except:
             self.amazonPricesList.append("Not Found")
         browser.close()
 
     def gameMetaCritic(self, name):
-        #global metaScoreList
         service = Service(verbose=True)
         options = Options()
         options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
-
         try:
-
             url = "https://www.metacritic.com/search/all/" + name + "/results"
             browser.get(url)
             metaGameXpath = '//*[@id="main_content"]/div/div[3]/div/ul/li[1]/div/div[2]/div/span'
             metaGameElement = browser.find_element(By.XPATH, metaGameXpath)
             metaScoreText = metaGameElement.get_attribute("innerHTML")
             self.metaScoreList.append(str(metaScoreText))
-            #print(metaScoreText)
         except:
             self.metaScoreList.append("Not Found")
         browser.close()
 
     def gameHowLongToBeat(self, name):
-        #global howLongList
         service = Service(verbose=True)
         options = Options()
         options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
-
         try:
-
             url = "https://howlongtobeat.com/?q=" + name
             browser.get(url)
             timeGameXpath = '//*[@id="search-results-header"]/ul/li[1]/div[2]/div/div/div[2]'
             timeGameElement = browser.find_element(By.XPATH, timeGameXpath)
             timeGameText = timeGameElement.get_attribute("innerHTML")
             self.howLongList.append(str(timeGameText))
-            #print(timeGameText)
         except:
             self.howLongList.append("Not Found")
         browser.close()
 
-    def gameImages(self, name):
-
+    def gameImages(self, games):
         service = Service(verbose=True)
         options = Options()
         options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
-
         try:
-
-            url = 'https://www.google.com/search?tbm=isch&q=' + name + 'ps4 cover'
-            browser.get(url)
-            gameImageXpath = '//*[@id="islrg"]/div[1]/div[1]/a[1]/div[1]/img'
-            gameImageElement = browser.find_element(By.XPATH, gameImageXpath)
-            imageLink = gameImageElement.get_attribute("innerHTML")
-            self.srcImagesList.append(str(imageLink))
-            print(imageLink)
+            for name in games:
+                url = 'https://www.google.com/search?tbm=isch&q=' + name + 'ps4 cover png'
+                browser.get(url)
+                gameImageSelector = '//*[@id="islrg"]/div[1]/div[2]/a[1]/div[1]/img'
+                gameImageElement = browser.find_element(By.XPATH, gameImageSelector)
+                imageLink = gameImageElement.get_attribute("src")
+                self.srcImagesList.append(imageLink)
         except:
             self.srcImagesList.append("Not Found")
             print('fail')
         browser.close()
 
     def gameFactory(self, games):
-        #
+
         i = 0
+        self.gameImages(games)
         for game in games:
             currTitle = game
             currPs = self.psPricesList[i]
@@ -189,36 +157,34 @@ class scrapper:
             i += 1
         return self.AllGamesList
 
-    def printsGlobals(self):
-        print('Lista ps: ' + str(self.psPricesList) + '\n'
-        'Lista amazon: ' + str(self.amazonPricesList) + '\n'
-        'Lista howlong: ' + str(self.howLongList) + '\n'
-        'Lista metas: ' + str(self.metaScoreList) + '\n'
-        'Lista enlaces: ' + str(self.srcImagesList))
-
 
 fetcher = scrapper()
 games = []
+
 with open('games2.txt', 'r') as fd:
     reader = csv.reader(fd)
     for row in reader:
         games.append(row[0])
 num_cores = mp.cpu_count()
-#start_time = time.time()
 
+
+start = time.time()
 playStationPrices = Parallel(4, prefer = "threads")(delayed(fetcher.gamePlayStation)(i) for i in games)
 amazonPrices = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameAmazon)(i) for i in games)
 metaScore = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameMetaCritic)(i) for i in games)
 metaScore = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameHowLongToBeat)(i) for i in games)
-
-#print(print("segundos en ejecucion " + str((time.time() - start_time))))
-
-# imagesLink = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameImages)(i) for i in games)
-#print(fetcher.srcImagesList)
+end = time.time()
 
 fetcher.gameFactory(games)
 
-print('Variables globales:')
-fetcher.printsGlobals()
 for i in fetcher.AllGamesList:
    i.printGameInfo()
+
+
+
+
+
+
+
+
+
