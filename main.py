@@ -58,6 +58,7 @@ class scrapper:
         options = Options()
         options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
+        browser.implicitly_wait(2)
         try:
             url = "https://store.playstation.com/es-cr/search/" + game
             browser.get(url)
@@ -67,7 +68,7 @@ class scrapper:
             gamePriceClass = 'psw-t-title-m'
             gamePriceElement = browser.find_element(By.CLASS_NAME, gamePriceClass)
             gamePriceText = gamePriceElement.get_attribute("innerHTML")
-            self.psPricesList.append(str(gamePriceText))
+            self.psPricesList.append(str(gamePriceText[3:]))
         except:
             self.psPricesList.append("Not Found")
 
@@ -78,6 +79,7 @@ class scrapper:
         options = Options()
         options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
+        browser.implicitly_wait(2)
         try:
             url = "https://www.amazon.com/s?k=" + game + " ps4"
             browser.get(url)
@@ -86,7 +88,7 @@ class scrapper:
             gamePriceID = 'priceblock_ourprice'
             gamePriceElement = browser.find_element(By.ID, gamePriceID)
             gamePriceText = gamePriceElement.get_attribute("innerHTML")
-            self.amazonPricesList.append(str(gamePriceText))
+            self.amazonPricesList.append(str(gamePriceText[3:]))
         except:
             self.amazonPricesList.append("Not Found")
         browser.close()
@@ -96,6 +98,7 @@ class scrapper:
         options = Options()
         options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
+        browser.implicitly_wait(2)
         try:
             url = "https://www.metacritic.com/search/all/" + name + "/results"
             browser.get(url)
@@ -112,6 +115,7 @@ class scrapper:
         options = Options()
         options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
+        browser.implicitly_wait(2)
         try:
             url = "https://howlongtobeat.com/?q=" + name
             browser.get(url)
@@ -128,21 +132,23 @@ class scrapper:
         options = Options()
         options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
-        try:
-            for name in games:
-                url = 'https://www.google.com/search?tbm=isch&q=' + name + 'ps4 cover png'
+        browser.implicitly_wait(2)
+        for name in games:
+            try:
+                url = "https://howlongtobeat.com/?q=" + name
                 browser.get(url)
-                gameImageSelector = '//*[@id="islrg"]/div[1]/div[2]/a[1]/div[1]/img'
-                gameImageElement = browser.find_element(By.XPATH, gameImageSelector)
+                gameImageSelector = 'div.GameCard_search_list_image__iEl6K>a>img'
+                gameImageElement = browser.find_element(By.CSS_SELECTOR, gameImageSelector)
                 imageLink = gameImageElement.get_attribute("src")
+                print(imageLink)
                 self.srcImagesList.append(imageLink)
-        except:
-            self.srcImagesList.append("Not Found")
-            print('fail')
+            except:
+                self.srcImagesList.append("Not Found")
         browser.close()
 
-    def gameFactory(self, games):
 
+
+    def gameFactory(self, games):
         i = 0
         self.gameImages(games)
         for game in games:
@@ -167,23 +173,15 @@ with open('games2.txt', 'r') as fd:
         games.append(row[0])
 num_cores = mp.cpu_count()
 
-
-start = time.time()
 playStationPrices = Parallel(4, prefer = "threads")(delayed(fetcher.gamePlayStation)(i) for i in games)
 amazonPrices = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameAmazon)(i) for i in games)
 metaScore = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameMetaCritic)(i) for i in games)
 metaScore = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameHowLongToBeat)(i) for i in games)
-end = time.time()
 
 fetcher.gameFactory(games)
 
 for i in fetcher.AllGamesList:
    i.printGameInfo()
-
-
-
-
-
 
 
 
