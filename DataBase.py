@@ -7,8 +7,6 @@ cnxn = pyodbc.connect('Driver={SQL Server};'
                       'TrustServerCertificate=no;'
                       'Connection Timeout=30;')
 cursor = cnxn.cursor()
-sql = "exec [dbo].[spINSERT_NewGame] @id=?,@name=?,@playPrice=?,@amazonPrice=?,@meta=?,@howlong=?,@image=?"
-
-values = (1,'last of us',25,20,87,'35 horas','https://howlongtobeat.com/games/69695_Need_For_Speed_Heat.jpg?width=100')
-cursor.execute(sql,values)
+sql = "{call dbo.spINSERT_NewGame(1,'last of us',25,20,87,'35 horas','https://howlongtobeat.com/games/69695_Need_For_Speed_Heat.jpg?width=100')}"
+cursor.execute(sql)
 
