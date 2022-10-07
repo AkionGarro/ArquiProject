@@ -1,0 +1,20 @@
+<-------------------------------Create Table-------------------------------------->
+CREATE TABLE Games (
+    gameid int NOT NULL PRIMARY KEY,
+    gamename varchar(255) NOT NULL,
+    gameplatform varchar(255) NOT NULL,
+    amazonprice varchar(255),
+    playstationprice varchar(255),
+	metascore varchar(255),
+	gametimeComplete varchar(255),
+	gametimeMain varchar(255),
+);
+
+<--------------------------Stored Procedure-------------------------------------->
+CREATE PROCEDURE dbo.spINSERT_NewGame2 @name nvarchar(255), @playPrice decimal,
+@amazonPrice decimal, @meta decimal, @howlong varchar(255), @image varchar(255)
+AS
+INSERT INTO [dbo].[Games](id,gameName,playPrice,amazonPrice,metaScore,howlong,imageLink)
+VALUES(NEXT VALUE FOR game_Id, @name,@playPrice,@amazonPrice,@meta,@howlong,@image)
+GO;
+
