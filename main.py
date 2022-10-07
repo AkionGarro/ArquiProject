@@ -9,6 +9,8 @@ from joblib import Parallel, delayed
 import csv
 import time
 
+from DataBase import AzureConnection
+
 
 class gameFull():
     def __init__(self, title, psPrice, amazonPrice, metaScore, howlong, imageLink):
@@ -36,6 +38,7 @@ class scrapper:
         self.howLongList = []
         self.srcImagesList = []
         self.AllGamesList = []
+        self.database = AzureConnection()
 
     def searchTopGames(self):
         games = []
@@ -68,9 +71,9 @@ class scrapper:
             gamePriceClass = 'psw-t-title-m'
             gamePriceElement = browser.find_element(By.CLASS_NAME, gamePriceClass)
             gamePriceText = gamePriceElement.get_attribute("innerHTML")
-            self.psPricesList.append(str(gamePriceText[3:]))
+            self.psPricesList.append((str(gamePriceText[3:])))
         except:
-            self.psPricesList.append("Not Found")
+            self.psPricesList.append(0)
 
         browser.close()
 
@@ -88,9 +91,9 @@ class scrapper:
             gamePriceID = 'priceblock_ourprice'
             gamePriceElement = browser.find_element(By.ID, gamePriceID)
             gamePriceText = gamePriceElement.get_attribute("innerHTML")
-            self.amazonPricesList.append(str(gamePriceText[3:]))
+            self.amazonPricesList.append((str(gamePriceText[3:])))
         except:
-            self.amazonPricesList.append("Not Found")
+            self.amazonPricesList.append(0)
         browser.close()
 
     def gameMetaCritic(self, name):
@@ -105,9 +108,9 @@ class scrapper:
             metaGameXpath = '//*[@id="main_content"]/div/div[3]/div/ul/li[1]/div/div[2]/div/span'
             metaGameElement = browser.find_element(By.XPATH, metaGameXpath)
             metaScoreText = metaGameElement.get_attribute("innerHTML")
-            self.metaScoreList.append(str(metaScoreText))
+            self.metaScoreList.append((str(metaScoreText)))
         except:
-            self.metaScoreList.append("Not Found")
+            self.metaScoreList.append(0)
         browser.close()
 
     def gameHowLongToBeat(self, name):
@@ -140,7 +143,7 @@ class scrapper:
                 gameImageSelector = 'div.GameCard_search_list_image__iEl6K>a>img'
                 gameImageElement = browser.find_element(By.CSS_SELECTOR, gameImageSelector)
                 imageLink = gameImageElement.get_attribute("src")
-                print(imageLink)
+                #print(imageLink)
                 self.srcImagesList.append(imageLink)
             except:
                 self.srcImagesList.append("Not Found")
@@ -158,10 +161,17 @@ class scrapper:
             currmetaScore = self.metaScoreList[i]
             currhowLong = self.howLongList[i]
             currImageLinks = self.srcImagesList[i]
-            currentGame = gameFull(currTitle, currPs, currAmazon, currmetaScore, currhowLong, currImageLinks)
-            self.AllGamesList.append(currentGame)
+            #currentGame = gameFull(currTitle, currPs, currAmazon, currmetaScore, currhowLong, currImageLinks)
+            try:
+                print((float)(currPs))
+                print((float)(currAmazon))
+                print((float)(currmetaScore))
+                self.database.insertGame(i,currTitle,(float)(currPs),(float)(currAmazon),(float)(currmetaScore),currhowLong,currImageLinks)
+            except:
+                print("NoGames")
+            #self.AllGamesList.append(currentGame)
             i += 1
-        return self.AllGamesList
+        #return self.AllGamesList
 
 
 fetcher = scrapper()
@@ -173,15 +183,16 @@ with open('games2.txt', 'r') as fd:
         games.append(row[0])
 num_cores = mp.cpu_count()
 
+star = time.time()
 playStationPrices = Parallel(4, prefer = "threads")(delayed(fetcher.gamePlayStation)(i) for i in games)
 amazonPrices = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameAmazon)(i) for i in games)
 metaScore = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameMetaCritic)(i) for i in games)
 metaScore = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameHowLongToBeat)(i) for i in games)
 
 fetcher.gameFactory(games)
+end = time.time()
 
-for i in fetcher.AllGamesList:
-   i.printGameInfo()
+print(end-star)
 
 
 
