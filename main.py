@@ -61,7 +61,7 @@ class scrapper:
         options = Options()
         options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
-        browser.implicitly_wait(2)
+        browser.implicitly_wait(1)
         try:
             url = "https://store.playstation.com/es-cr/search/" + game
             browser.get(url)
@@ -71,7 +71,10 @@ class scrapper:
             gamePriceClass = 'psw-t-title-m'
             gamePriceElement = browser.find_element(By.CLASS_NAME, gamePriceClass)
             gamePriceText = gamePriceElement.get_attribute("innerHTML")
-            self.psPricesList.append((str(gamePriceText[3:])))
+            if(str(gamePriceText) !="Gratuito"):
+                self.psPricesList.append((str(gamePriceText[3:])))
+            else:
+                self.psPricesList.append(0)
         except:
             self.psPricesList.append(0)
 
@@ -82,7 +85,7 @@ class scrapper:
         options = Options()
         options.add_argument("headless")
         browser = webdriver.Edge(service=service, options=options)
-        browser.implicitly_wait(2)
+        browser.implicitly_wait(1)
         try:
             url = "https://www.amazon.com/s?k=" + game + " ps4"
             browser.get(url)
@@ -143,12 +146,10 @@ class scrapper:
                 gameImageSelector = 'div.GameCard_search_list_image__iEl6K>a>img'
                 gameImageElement = browser.find_element(By.CSS_SELECTOR, gameImageSelector)
                 imageLink = gameImageElement.get_attribute("src")
-                #print(imageLink)
                 self.srcImagesList.append(imageLink)
             except:
                 self.srcImagesList.append("Not Found")
         browser.close()
-
 
 
     def gameFactory(self, games):
@@ -161,34 +162,28 @@ class scrapper:
             currmetaScore = self.metaScoreList[i]
             currhowLong = self.howLongList[i]
             currImageLinks = self.srcImagesList[i]
-            #currentGame = gameFull(currTitle, currPs, currAmazon, currmetaScore, currhowLong, currImageLinks)
             try:
-                print((float)(currPs))
-                print((float)(currAmazon))
-                print((float)(currmetaScore))
-                self.database.insertGame(i,currTitle,(float)(currPs),(float)(currAmazon),(float)(currmetaScore),currhowLong,currImageLinks)
+                self.database.insertGame(currTitle,(float)(currPs),(float)(currAmazon),(float)(currmetaScore),currhowLong,currImageLinks)
             except:
                 print("NoGames")
-            #self.AllGamesList.append(currentGame)
             i += 1
-        #return self.AllGamesList
 
 
 fetcher = scrapper()
 games = []
 
-with open('games2.txt', 'r') as fd:
+with open('games.txt', 'r') as fd:
     reader = csv.reader(fd)
     for row in reader:
         games.append(row[0])
 num_cores = mp.cpu_count()
 
 star = time.time()
-playStationPrices = Parallel(4, prefer = "threads")(delayed(fetcher.gamePlayStation)(i) for i in games)
+
 amazonPrices = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameAmazon)(i) for i in games)
 metaScore = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameMetaCritic)(i) for i in games)
+playStationPrices = Parallel(3, prefer = "threads")(delayed(fetcher.gamePlayStation)(i) for i in games)
 metaScore = Parallel(mp.cpu_count(), prefer = "threads")(delayed(fetcher.gameHowLongToBeat)(i) for i in games)
-
 fetcher.gameFactory(games)
 end = time.time()
 
