@@ -16,7 +16,8 @@ function App() {
 
   return (
     <div className="App">
-      <div className="titleContainer">Error 404 AppName not found</div>
+      <div className="titleContainer">Web Scrapping App
+      </div>
       <div className="backContainer">
         <div className="container">
           {games.map((game) => {
