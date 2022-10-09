@@ -21,7 +21,7 @@ class AzureConnection():
         self.cursor.execute(sql)
         rows = self.cursor.fetchall()
         for row in rows:
-            game ={"Id":row[0],"Name":row[1],"PlayStationPrice":str(row[2]),"AmazonPrice":str(row[3]),"Meta Score":str(row[4]),"HowLongtoBeat":row[5],"Image":row[6]}
+            game ={"Id":row[0],"Name":row[1],"PlayStationPrice":str(row[2]),"AmazonPrice":str(row[3]),"MetaScore":str(row[4]),"HowLongtoBeat":row[5],"Image":row[6]}
             data.append(game)
         return data
 

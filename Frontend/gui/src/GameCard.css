@@ -1,4 +1,22 @@
-.row{
-    width: 300px;
-    height: 250px;
-  }
+.cardContainer {
+  width: 300px;
+  height: 400px;
+  margin: 25px;
+  box-shadow: 0px 0px 15px -5px;
+  text-align: left;
+}
+
+.cardContainer:hover {
+  transform: scale(1.1);
+  box-shadow: 0px 0px 15px 0px;
+  transition: 0.5s;
+}
+
+.imageContainer{
+  margin: 1rem;
+  text-align: center;
+}
+
+.cardContent{
+ margin: 1rem;
+}
