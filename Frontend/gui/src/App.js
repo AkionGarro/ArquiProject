@@ -1,23 +1,29 @@
-import logo from './logo.svg';
+import { GameCard } from "./GameCard";
+import { games as data } from "./games";
+import { useState, useEffect } from "react";
 import './App.css';
 
 function App() {
+  console.log(data);
+  const [games, setGames] = useState([]);
+
+  useEffect(() => {
+    setGames(data);
+  }, []);
+
+  if (games.length === 0) {
+    return <h1>No hay juegos</h1>;
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <div className="container">
+        {games.map((game) => {
+          return (
+            <GameCard game = {game}/>
+          );
+        })}
+      </div>
     </div>
   );
 }
