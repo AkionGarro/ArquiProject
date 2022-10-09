@@ -1,5 +1,4 @@
 import pyodbc
-from flask import Flask
 import json
 class AzureConnection():
     def __init__(self):
@@ -24,8 +23,7 @@ class AzureConnection():
         for row in rows:
             game ={"Id":row[0],"Name":row[1],"PlayStationPrice":str(row[2]),"AmazonPrice":str(row[3]),"Meta Score":str(row[4]),"HowLongtoBeat":row[5],"Image":row[6]}
             data.append(game)
-        json_object = json.dumps(data, indent=4)
-        return json_object
+        return data
 
 
 #conn = AzureConnection()
