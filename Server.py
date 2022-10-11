@@ -9,6 +9,7 @@ app = Flask(__name__)
 def getGamesDataBase():
     database = DataBase.AzureConnection()
     data = database.getGames()
+    print(jsonify(data))
     return jsonify(data)
 
 if __name__ == '__main__':

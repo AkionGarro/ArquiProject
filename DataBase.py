@@ -17,7 +17,7 @@ class AzureConnection():
 
     def getGames(self):
         data = []
-        sql = "SELECT * from dbo.Games"
+        sql = "SELECT * from dbo.Games WHERE imageLink != 'Not Found' "
         self.cursor.execute(sql)
         rows = self.cursor.fetchall()
         for row in rows:
